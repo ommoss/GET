@@ -4,22 +4,36 @@ var contributors = {
 };
 var request = require('request');
 var fs = require('fs');
+var db = require('dotenv').config();
+if(process.env.DB_USERAGENT === undefined || process.env.DB_USERAGENT === ""){
+  console.log("You need to create an .env file with 'DB_USERAGENT= your github username in quotes'")
+  return;
+}
 //creates directory
-fs.mkdir("./avatar", function(err){
-  if(err){
-    console.log(err);
-  }
-});
 
-function getStuff(user, repo){
+function getStuff(user, repo, extra){
+
+  if(user === undefined){
+    console.log("Error missing user data");
+    return;
+  }else if(repo === undefined){
+    console.log("Error missing repository data");
+    return;
+  }else if(extra !== undefined){
+    console.log("too much data");
+    return;
+  }
+  fs.mkdir("./avatar", function(err){
+    if(err){
+    }
+  });
   requestOptions = {
     url: 'https://api.github.com/repos/' + user +'/' + repo  + '/contributors',
     method: 'GET',
     headers: {
-      'User-Agent': 'ommoss'
+      'User-Agent': process.env.DB_USERAGENT
     }
   };
-
   function doStuff(element, index, array){
     //Stores data from github into a object
     var obj = {
@@ -55,7 +69,7 @@ function getStuff(user, repo){
           console.log(err);
           throw err;
         }
-      }).pipe(fs.createWriteStream("avatar/"+ url[index].name));
+      }).pipe(fs.createWriteStream(file + url[index].name));
     }
   }
 
@@ -64,10 +78,19 @@ function getStuff(user, repo){
    console.log(err);
   }
   //Run line
+
+  if(data === {"message":"Not Found","documentation_url":"https://developer.github.com/v3"}){
+    console.log("User name or repository does not exist");
+    return;
+  }
   var parsed = JSON.parse(data);
+   if(parsed.message === "Not Found"){
+    console.log("Owner or repository does not exist");
+    return;
+  }
   parsed.forEach(doStuff);
   createFile(contributors);
   download(contributors, 'avatar/');
   })
 }
-getStuff(agrs[2], agrs[3]);
+getStuff(agrs[2], agrs[3], agrs[4]);
