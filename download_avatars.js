@@ -39,7 +39,7 @@ function getStuff(user, repo, extra){
     method: 'GET',
     headers: {
       'User-Agent': process.env.DB_USERAGENT
-    };
+    }
   };
   request(requestOptions, function(err, res, data){
     if(err){
@@ -77,9 +77,9 @@ function getStuff(user, repo, extra){
         }
       });
     }
-  }
+  };
 
-  function downloadPictures{(url, file){
+  function downloadPictures(url, file){
     //puts the contributors avatars in their files
     for(index in url){
       var requestOptions = {
@@ -94,6 +94,6 @@ function getStuff(user, repo, extra){
         }
       }).pipe(fs.createWriteStream(file + url[index].name));
     }
-  }
+  };
 
 }
