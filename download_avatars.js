@@ -1,18 +1,22 @@
 var agrs = process.argv;
 
-var contributors = {
-};
+var contributors = {};
+
 var request = require('request');
+
 var fs = require('fs');
+
 var db = require('dotenv').config();
+
 if(process.env.DB_USERAGENT === undefined || process.env.DB_USERAGENT === ""){
   console.log("You need to create an .env file with 'DB_USERAGENT= your github username in quotes'")
   return;
 }
 //creates directory
 
+getStuff(agrs[2], agrs[3], agrs[4]);
 function getStuff(user, repo, extra){
-
+  //checks to see if enough or extra data
   if(user === undefined){
     console.log("Error missing user data");
     return;
@@ -23,29 +27,47 @@ function getStuff(user, repo, extra){
     console.log("too much data");
     return;
   }
+
   fs.mkdir("./avatar", function(err){
     if(err){
+      console.log("using existing directory");
     }
   });
+
   requestOptions = {
     url: 'https://api.github.com/repos/' + user +'/' + repo  + '/contributors',
     method: 'GET',
     headers: {
       'User-Agent': process.env.DB_USERAGENT
-    }
+    };
   };
-  function doStuff(element, index, array){
-    //Stores data from github into a object
+  request(requestOptions, function(err, res, data){
+    if(err){
+      console.log(err);
+    }
+    //Run line
+    var parsed = JSON.parse(data);
+    if(parsed.message === "Not Found"){
+      console.log("Owner or repository does not exist");
+      return;
+    };
+    parsed.forEach(storeData);
+    createContributorFiles(contributors);
+    downloadPictures(contributors, 'avatar/');
+  });
+
+  function storeData(element, index, array){
+    //Stores data from github into a object and add it to contributors
     var obj = {
       id: element.id,
       name: element.login,
       avatar: element.avatar_url
     }
     contributors[index] = obj;
-  }
+  };
 
-  function createFile(obj){
-    //creates a file with the name of the login
+  function createContributorFiles(obj){
+    //creates contributor files with the name of the login
     for(index in obj){
       var filePath = "avatar/" + obj[index].name;
       var fileData = obj[index].avatar;
@@ -56,8 +78,9 @@ function getStuff(user, repo, extra){
       });
     }
   }
-  function download(url, file){
-    //puts the picture in the file
+
+  function downloadPictures{(url, file){
+    //puts the contributors avatars in their files
     for(index in url){
       var requestOptions = {
         url: url[index].avatar,
@@ -73,24 +96,4 @@ function getStuff(user, repo, extra){
     }
   }
 
-  request(requestOptions, function(err, res, data){
-  if(err){
-   console.log(err);
-  }
-  //Run line
-
-  if(data === {"message":"Not Found","documentation_url":"https://developer.github.com/v3"}){
-    console.log("User name or repository does not exist");
-    return;
-  }
-  var parsed = JSON.parse(data);
-   if(parsed.message === "Not Found"){
-    console.log("Owner or repository does not exist");
-    return;
-  }
-  parsed.forEach(doStuff);
-  createFile(contributors);
-  download(contributors, 'avatar/');
-  })
 }
-getStuff(agrs[2], agrs[3], agrs[4]);
