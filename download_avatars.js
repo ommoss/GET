@@ -4,7 +4,7 @@ var contributors = {
 };
 var request = require('request');
 var fs = require('fs');
-
+//creates directory
 fs.mkdir("./avatar", function(err){
   if(err){
     console.log(err);
@@ -21,6 +21,7 @@ function getStuff(user, repo){
   };
 
   function doStuff(element, index, array){
+    //Stores data from github into a object
     var obj = {
       id: element.id,
       name: element.login,
@@ -30,6 +31,7 @@ function getStuff(user, repo){
   }
 
   function createFile(obj){
+    //creates a file with the name of the login
     for(index in obj){
       var filePath = "avatar/" + obj[index].name;
       var fileData = obj[index].avatar;
@@ -41,6 +43,7 @@ function getStuff(user, repo){
     }
   }
   function download(url, file){
+    //puts the picture in the file
     for(index in url){
       var requestOptions = {
         url: url[index].avatar,
@@ -60,6 +63,7 @@ function getStuff(user, repo){
   if(err){
    console.log(err);
   }
+  //Run line
   var parsed = JSON.parse(data);
   parsed.forEach(doStuff);
   createFile(contributors);
